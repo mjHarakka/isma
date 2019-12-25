@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from 'react'
-import ReactMapGL, { Marker, Popup } from 'react-map-gl'
+import ReactMapGL, { Popup } from 'react-map-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import axios from 'axios'
-import Info from './Info'
+import Marker from './Marker'
 
 const TOKEN = 'pk.eyJ1IjoibWpoYXJha2thIiwiYSI6ImNqbjBkdDc2NTFrMDQzdnFsbG1weHU0NzMifQ.DA8foxpDUJyS9mAZ8mWXew';
+
+const contentBlock = {
+  maxWidth: 300,
+}
+
+const imgStyle = {
+  maxWidth: 300
+}
 
 const App = () => {
 
@@ -20,6 +28,19 @@ const App = () => {
   const [selectedIssue, setSelectedIssue] = useState(null)
 
   useEffect(() => {
+    const listener = e => {
+      if (e.key === "Escape") {
+        setSelectedIssue(null);
+      }
+    };
+    window.addEventListener("keydown", listener);
+
+    return () => {
+      window.removeEventListener("keydown", listener);
+    };
+  }, []);
+
+  useEffect(() => {
     axios.get(`https://asiointi.hel.fi/palautews/rest/v1/requests.json`)
       .then(res => {
         const data = res.data.filter(issue => ((issue.lat !== null || issue.long !== null) && issue.status === "open"))
@@ -27,13 +48,8 @@ const App = () => {
       })
   })
 
-  const handleMarkerClick = (e) => {
-    return (
-      e => {
-        e.preventDefault()
-        setSelectedIssue(issue)
-      }
-    )
+  const setMarker = (issue) => {
+    setSelectedIssue(issue)
   }
 
   return (
@@ -46,66 +62,32 @@ const App = () => {
         onViewportChange={viewport => { setViewPort(viewport) }}
       >
         {issues.map(issue => (
-
-          <Marker key={issue.service_request_id}
-            latitude={issue.lat}
-            longitude={issue.long}>
-
-
-
-
-            {(issue.status_notes = "") ? (
-
-              <button className="circular ui icon button red"
-
-                onClick={e => {
-                  e.preventDefault()
-                  setSelectedIssue(issue)
-                }}
-              >
-
-
-
-                <i className="user icon"></i>
-              </button>
-
-            ) : (
-
-                <button className="circular ui icon button green"
-
-                  onClick={e => {
-                    e.preventDefault()
-                    setSelectedIssue(issue)
-                  }}
-                >
-
-
-
-                  <i className="user icon"></i>
-                </button>
-
-              )}
-
-
-
-
-          </Marker>
+          <Marker
+            key={issue.service_request_id}
+            issue={issue}
+            setMarker={setMarker.bind(this, issue)} />
         ))}
 
         {selectedIssue && (
           <Popup
             latitude={selectedIssue.lat}
             longitude={selectedIssue.long}
-
+            onClose={() => {
+              setSelectedIssue(null);
+            }}
           >
 
-
-            <div className="ui-card">
-              <div class="image">
-                <img src={selectedIssue.media_url} />
+            <div className="ui-cards" style={contentBlock}>
+              <div className="image">
+                <img src={selectedIssue.media_url} style={imgStyle} />
               </div>
-              <div class="content">
-                <p>{selectedIssue.description}</p>
+              <div className="content">
+                <div className="meta">
+                  <span className="date">{selectedIssue.requested_datetime}</span>
+                </div>
+                <div className="description">{
+                  selectedIssue.description}
+                </div>
               </div>
             </div>
           </Popup>
