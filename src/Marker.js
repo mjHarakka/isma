@@ -23,7 +23,6 @@ const Marker = (props) => {
                     </button>
 
                 )}
-
         </ReactMarker>
     )
 }
