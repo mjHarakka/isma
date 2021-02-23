@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react'
-import ReactMap from './ReactMap'
 import IssueDetail from './IssueDetail'
+import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom'
+import ReactMap from './ReactMap'
+import TopNav from './components/TopNav'
 
 const App = () => {
   return (
-      <ReactMap /> 
+    <div>
+      <TopNav />
+      <ReactMap />
+    </div>
   )
 }
 

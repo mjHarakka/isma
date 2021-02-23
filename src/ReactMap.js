@@ -5,75 +5,82 @@ import axios from 'axios'
 import Marker from './Marker'
 import IssueDetail from './IssueDetail'
 
-const TOKEN = 'pk.eyJ1IjoibWpoYXJha2thIiwiYSI6ImNqbjBkdDc2NTFrMDQzdnFsbG1weHU0NzMifQ.DA8foxpDUJyS9mAZ8mWXew';
+const TOKEN =
+  'pk.eyJ1IjoibWpoYXJha2thIiwiYSI6ImNqbjBkdDc2NTFrMDQzdnFsbG1weHU0NzMifQ.DA8foxpDUJyS9mAZ8mWXew'
 
 const ReactMap = () => {
+  const [viewport, setViewPort] = useState({
+    width: '100%',
+    height: 1100,
+    latitude: 60.192059,
+    longitude: 24.945831,
+    zoom: 12,
+  })
 
-    const [viewport, setViewPort] = useState({
-        width: "100%",
-        height: 900,
-        latitude: 60.192059,
-        longitude: 24.945831,
-        zoom: 12
-    })
+  const [issues, setIssues] = useState([])
+  const [selectedIssue, setSelectedIssue] = useState(null)
 
-    const [issues, setIssues] = useState([])
-    const [selectedIssue, setSelectedIssue] = useState(null)
-
-    useEffect(() => {
-        const listener = e => {
-            if (e.key === "Escape") {
-                setSelectedIssue(null);
-            }
-        };
-        window.addEventListener("keydown", listener);
-
-        return () => {
-            window.removeEventListener("keydown", listener);
-        };
-    }, []);
-
-    useEffect(() => {
-        axios.get(`https://asiointi.hel.fi/palautews/rest/v1/requests.json`)
-            .then(res => {
-                const data = res.data.filter(issue => ((issue.lat !== null || issue.long !== null) && issue.status === "open"))
-                setIssues(data)
-            })
-    })
-
-    const setMarker = issue => {
-        setSelectedIssue(issue)
+  useEffect(() => {
+    const listener = (e) => {
+      if (e.key === 'Escape') {
+        setSelectedIssue(null)
+      }
     }
+    window.addEventListener('keydown', listener)
 
-    return (
+    return () => {
+      window.removeEventListener('keydown', listener)
+    }
+  }, [])
 
-        <div className="ui grid">
-            <div className="ten wide column">
+  useEffect(() => {
+    axios
+      .get(`https://asiointi.hel.fi/palautews/rest/v1/requests.json`)
+      .then((res) => {
+        const data = res.data.filter(
+          (issue) =>
+            (issue.lat !== null || issue.long !== null) &&
+            issue.status === 'open'
+        )
+        setIssues(data)
+      })
+  })
 
-                <ReactMapGL
-                    {...viewport}
-                    mapboxApiAccessToken={TOKEN}
-                    mapStyle="mapbox://styles/mapbox/dark-v8"
-                    onViewportChange={viewport => { setViewPort(viewport) }}
-                >
-                    {issues.map(issue => (
-                        <Marker
-                            key={issue.service_request_id}
-                            issue={issue}
-                            setMarker={setMarker.bind(this, issue)} />
-                    ))}
+  const setMarker = (issue) => {
+    setSelectedIssue(issue)
+  }
 
-                </ReactMapGL>
-            </div >
-            <div className="six wide column">
-                <IssueDetail
-                    selectedIssue={selectedIssue} onClose={() => {
-                        setSelectedIssue(null)
-                    }}
-                />
-            </div>
-        </div >
-    )
+  return (
+    <div className="ui grid">
+      <div className="sixteen wide column" style={{padding: '0px'}}>
+        <ReactMapGL
+          {...viewport}
+          mapboxApiAccessToken={TOKEN}
+          mapStyle="mapbox://styles/mapbox/dark-v8"
+          onViewportChange={(viewport) => {
+            setViewPort(viewport)
+          }}
+        >
+          {issues.map((issue) => (
+            <Marker
+              key={issue.service_request_id}
+              issue={issue}
+              setMarker={setMarker.bind(this, issue)}
+            />
+          ))}
+          {(selectedIssue !== null) && setMarker && <Popup
+          anchor="top"
+          latitude={selectedIssue.lat}
+          longitude={selectedIssue.long}
+          onClose={setMarker}
+          closeOnClick={false}
+          anchor="top" >
+          <div>You are here</div>
+        </Popup>}
+        </ReactMapGL>
+      </div>
+    </div>
+  )
 }
 
-export default ReactMap 
+export default ReactMap

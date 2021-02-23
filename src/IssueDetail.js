@@ -2,7 +2,6 @@ import React from 'react'
 
 const contentBlock = {
     maxWidth: 600,
-    marginTop: 40
 }
 
 const imgStyle = {
